@@ -146,34 +146,61 @@ pip install -r requirements.txt
 - **Serge Bulaev (sbulaev - subscriber)**: `f6869754-5429-4298-a825-ae506cf4e71e`
 
 ### Linear Issue Management Rules
+
+#### Required Status Flow
+**MANDATORY**: All issues must follow this exact status progression:
+**Backlog** → **Todo** → **In Progress** → **In Review** → **Done**
+
+#### Status Update Requirements
 1. **When creating a Linear issue:**
    - Use MCP Linear tools when available
    - Assign the issue to Claude (use assigneeId: `64a87888-93a6-4c13-bdac-d3bec9cc7f5d`)
    - Add sbulaev as a subscriber for notifications
    - Set appropriate priority (1=urgent, 2=high, 3=medium, 4=low)
-   - Set initial status to "Todo"
+   - Set initial status to "Backlog"
 
-2. **When starting work on a Linear issue:**
-   - Update the issue status to "In Progress" 
+2. **Before starting work (Backlog → Todo):**
+   - Update issue status to "Todo"
+   - Add comment confirming issue is ready to start
+   - Ensure all requirements are clear and dependencies identified
+
+3. **When starting work (Todo → In Progress):**
+   - Update the issue status to "In Progress"
    - Add a comment describing what work is being started
    - Confirm assignment to Claude if not already assigned
    
-3. **During work:**
+4. **During active development:**
+   - Keep status as "In Progress"
    - Add progress comments for significant milestones
    - Update the description with findings or technical details
    - Log any blockers or dependencies discovered
    
-4. **When completing work:**
-   - Update status to "Done" or "In Review" as appropriate
-   - Add a final comment summarizing what was accomplished
-   - Include any relevant code changes, file paths, or test results
-   - Reference commit hashes if applicable
+5. **When starting testing (In Progress → In Review):**
+   - Update status to "In Review" when implementation is complete
+   - Begin comprehensive testing (unit tests, integration tests)
+   - Add comment indicating testing phase has begun
+   - Document test coverage and results
    
-5. **If blocked:**
-   - Update status to "Blocked"
-   - Add comment explaining the blocker
+6. **When all testing passes (In Review → Done):**
+   - Update status to "Done" only after ALL tests pass
+   - Add final comment summarizing what was accomplished
+   - Include relevant code changes, file paths, and test results
+   - Reference commit hashes and GitHub URLs
+   - Document final test counts and pass rates
+   
+7. **If blocked at any stage:**
+   - Update status to "Blocked" (temporary state)
+   - Add comment explaining the specific blocker
    - Create linked issues for dependencies if needed
    - Tag sbulaev in comments for urgent blockers
+   - Return to appropriate status once unblocked
+
+#### State IDs for MCP Linear API
+- **Backlog**: `8245f16a-f93c-43db-8b02-a4a2e15b0396`
+- **Todo**: `77b631ad-be46-423b-82ad-f65c1e9a4383`
+- **In Progress**: `dcb6cfe7-2a40-43b4-b9c3-62fdc8a25de3`
+- **In Review**: `0cf826dd-f2e3-4c39-9e80-ba8e1cc2794f`
+- **Done**: `ec7fb97d-0b09-4913-89eb-73fdf7cf5f3d`
 
 ### Linear Integration
 - Use MCP Linear tools for issue management when available
