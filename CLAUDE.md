@@ -1,5 +1,8 @@
 # ImageFox Development Guidelines
 
+## 🎯 PRIORITY RULE
+**MANDATORY**: Always work on HIGH PRIORITY (priority 1) Linear issues first. Complete ALL priority 1 issues before moving to priority 2, then complete ALL priority 2 before priority 3, etc. Check issue priorities using MCP Linear tools and focus on the highest priority issues available.
+
 ## Project Overview
 ImageFox is an intelligent image search and selection agent that is part of the Co.Actor Scale content generation system. It receives search prompts, performs Google image searches via Apify, analyzes images using computer vision LLMs, and selects the best candidates using AI decision-making.
 
@@ -152,6 +155,8 @@ pip install -r requirements.txt
 **Backlog** → **Todo** → **In Progress** → **In Review** → **Done**
 
 #### Status Update Requirements
+**🚨 CRITICAL RULE**: You MUST update Linear issue status at EVERY workflow transition. Status updates are MANDATORY and NON-NEGOTIABLE. Always use MCP Linear tools to update status.
+
 1. **When creating a Linear issue:**
    - Use MCP Linear tools when available
    - Assign the issue to Claude (use assigneeId: `64a87888-93a6-4c13-bdac-d3bec9cc7f5d`)
@@ -160,12 +165,12 @@ pip install -r requirements.txt
    - Set initial status to "Backlog"
 
 2. **Before starting work (Backlog → Todo):**
-   - Update issue status to "Todo"
+   - **MANDATORY**: Update issue status to "Todo" using `mcp__linear__linear_update_issue`
    - Add comment confirming issue is ready to start
    - Ensure all requirements are clear and dependencies identified
 
 3. **When starting work (Todo → In Progress):**
-   - Update the issue status to "In Progress"
+   - **MANDATORY**: Update the issue status to "In Progress" using `mcp__linear__linear_update_issue`
    - Add a comment describing what work is being started
    - Confirm assignment to Claude if not already assigned
    
@@ -176,13 +181,13 @@ pip install -r requirements.txt
    - Log any blockers or dependencies discovered
    
 5. **When starting testing (In Progress → In Review):**
-   - Update status to "In Review" when implementation is complete
+   - **MANDATORY**: Update status to "In Review" using `mcp__linear__linear_update_issue`
    - Begin comprehensive testing (unit tests, integration tests)
    - Add comment indicating testing phase has begun
    - Document test coverage and results
    
 6. **When all testing passes (In Review → Done):**
-   - Update status to "Done" only after ALL tests pass
+   - **MANDATORY**: Update status to "Done" using `mcp__linear__linear_update_issue`
    - Add final comment summarizing what was accomplished
    - Include relevant code changes, file paths, and test results
    - Reference commit hashes and GitHub URLs
