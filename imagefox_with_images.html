@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageFox Experiment Results - Visual Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            margin-top: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .top-performers {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .top-performers h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .winners {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .winner-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .winner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+        
+        .medal {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .winner-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .winner-score {
+            color: #3498db;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .winner-query {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .winner-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .experiments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .experiment-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .experiment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+        
+        .experiment-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .experiment-content {
+            padding: 20px;
+        }
+        
+        .experiment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .experiment-rank {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .experiment-score {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .experiment-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .experiment-query {
+            color: #7f8c8d;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .parameters {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .parameter {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+        }
+        
+        .parameter-name {
+            color: #7f8c8d;
+        }
+        
+        .parameter-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .voting-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .vote-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .vote-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .vote-up {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .vote-up:hover {
+            background: #27ae60;
+            transform: scale(1.05);
+        }
+        
+        .vote-down {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .vote-down:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+        
+        .vote-count {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .experiments-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .winners {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 ImageFox Experiment Results</h1>
+            <p>20 Different Analytical Approaches Applied to the Same easyJet Article</p>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">20</div>
+                    <div class="stat-label">Experiments</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">10</div>
+                    <div class="stat-label">Parameters</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">85.10</div>
+                    <div class="stat-label">Top Score</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="top-performers">
+                <h2>🏆 Top Performers</h2>
+                <div class="winners">
+                    <div class="winner-card">
+                        <div class="medal">🥇</div>
+                        <div class="winner-name">EXP-13: Risk Assessment</div>
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop" alt="Risk Assessment Dashboard" class="winner-image">
+                        <div class="winner-score">Score: 85.10/10</div>
+                        <div class="winner-query">Query: business risk assessment corporate risk management</div>
+                    </div>
+                    <div class="winner-card">
+                        <div class="medal">🥈</div>
+                        <div class="winner-name">EXP-15: Brand Management</div>
+                        <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500&h=300&fit=crop" alt="Brand Strategy Meeting" class="winner-image">
+                        <div class="winner-score">Score: 84.06/10</div>
+                        <div class="winner-query">Query: brand management corporate reputation</div>
+                    </div>
+                    <div class="winner-card">
+                        <div class="medal">🥉</div>
+                        <div class="winner-name">EXP-03: Communication Strategy</div>
+                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=300&fit=crop" alt="Crisis Communication" class="winner-image">
+                        <div class="winner-score">Score: 83.96/10</div>
+                        <div class="winner-query">Query: corporate communication crisis PR</div>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">All Experiments</h2>
+            
+            <div class="experiments-grid" id="experimentsGrid">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>ImageFox Methodology Validation - Same Article, Different Approaches, Different Results</p>
+            <p style="margin-top: 10px; opacity: 0.8;">Votes are stored locally in your browser</p>
+        </div>
+    </div>
+    
+    <script>
+        // Real image URLs for each experiment
+        const experimentImages = {
+            'EXP-01': 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=500&h=300&fit=crop', // Aviation
+            'EXP-02': 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=500&h=300&fit=crop', // Leadership
+            'EXP-03': 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=300&fit=crop', // Communication
+            'EXP-04': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&h=300&fit=crop', // Innovation
+            'EXP-05': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=300&fit=crop', // Competition
+            'EXP-06': 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=500&h=300&fit=crop', // Financial
+            'EXP-07': 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=500&h=300&fit=crop', // HR
+            'EXP-08': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=300&fit=crop', // Customer
+            'EXP-09': 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=500&h=300&fit=crop', // Crisis
+            'EXP-10': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=500&h=300&fit=crop', // Compliance
+            'EXP-11': 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&h=300&fit=crop', // Culture
+            'EXP-12': 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=500&h=300&fit=crop', // Strategy
+            'EXP-13': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop', // Risk
+            'EXP-14': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop', // Performance
+            'EXP-15': 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500&h=300&fit=crop', // Brand
+            'EXP-16': 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=500&h=300&fit=crop', // PR
+            'EXP-17': 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=500&h=300&fit=crop', // Global
+            'EXP-18': 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=500&h=300&fit=crop', // Sustainability
+            'EXP-19': 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500&h=300&fit=crop', // Trends
+            'EXP-20': 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=500&h=300&fit=crop'  // Wellness
+        };
+        
+        // Experiment data
+        const experiments = [
+            {
+                rank: 1,
+                id: 'EXP-13',
+                name: "EXP-13: Risk Assessment",
+                score: 85.10,
+                query: "business risk assessment corporate risk management operational risk",
+                relevance: 9.0,
+                clarity: 9.2,
+                professional: 8.0,
+                infoValue: 9.5
+            },
+            {
+                rank: 2,
+                id: 'EXP-15',
+                name: "EXP-15: Brand Management",
+                score: 84.06,
+                query: "brand management corporate reputation brand protection",
+                relevance: 7.5,
+                clarity: 8.5,
+                professional: 9.0,
+                infoValue: 7.8
+            },
+            {
+                rank: 3,
+                id: 'EXP-03',
+                name: "EXP-03: Communication Strategy",
+                score: 83.96,
+                query: "corporate communication public relations crisis PR",
+                relevance: 8.2,
+                clarity: 9.0,
+                professional: 8.8,
+                infoValue: 8.2
+            },
+            {
+                rank: 4,
+                id: 'EXP-02',
+                name: "EXP-02: Corporate Trust & Leadership",
+                score: 83.00,
+                query: "corporate leadership executive management business integrity",
+                relevance: 7.8,
+                clarity: 8.8,
+                professional: 9.2,
+                infoValue: 7.5
+            },
+            {
+                rank: 5,
+                id: 'EXP-09',
+                name: "EXP-09: Crisis Management",
+                score: 82.21,
+                query: "crisis management emergency response business continuity",
+                relevance: 8.8,
+                clarity: 8.2,
+                professional: 7.5,
+                infoValue: 8.0
+            },
+            {
+                rank: 6,
+                id: 'EXP-01',
+                name: "EXP-01: Aviation Industry Focus",
+                score: 81.63,
+                query: "commercial aviation airline industry pilot training",
+                relevance: 8.5,
+                clarity: 8.0,
+                professional: 8.2,
+                infoValue: 8.8
+            },
+            {
+                rank: 7,
+                id: 'EXP-20',
+                name: "EXP-20: Wellness Integration",
+                score: 79.20,
+                query: "workplace wellness employee mental health counseling",
+                relevance: 7.2,
+                clarity: 8.0,
+                professional: 8.2,
+                infoValue: 7.5
+            },
+            {
+                rank: 8,
+                id: 'EXP-06',
+                name: "EXP-06: Financial Impact",
+                score: 78.29,
+                query: "financial impact economic analysis business economics",
+                relevance: 8.0,
+                clarity: 8.5,
+                professional: 7.8,
+                infoValue: 9.0
+            },
+            {
+                rank: 9,
+                id: 'EXP-12',
+                name: "EXP-12: Strategic Planning",
+                score: 77.50,
+                query: "strategic business planning corporate strategy vision",
+                relevance: 7.5,
+                clarity: 8.0,
+                professional: 8.5,
+                infoValue: 7.8
+            },
+            {
+                rank: 10,
+                id: 'EXP-07',
+                name: "EXP-07: HR & Talent Management",
+                score: 76.80,
+                query: "human resources talent management employee development",
+                relevance: 7.0,
+                clarity: 7.8,
+                professional: 8.5,
+                infoValue: 7.5
+            },
+            {
+                rank: 11,
+                id: 'EXP-08',
+                name: "EXP-08: Customer Experience",
+                score: 75.90,
+                query: "customer experience stakeholder management service quality",
+                relevance: 6.8,
+                clarity: 7.5,
+                professional: 8.0,
+                infoValue: 7.2
+            },
+            {
+                rank: 12,
+                id: 'EXP-10',
+                name: "EXP-10: Regulatory Compliance",
+                score: 74.20,
+                query: "regulatory compliance business governance standards",
+                relevance: 7.2,
+                clarity: 7.5,
+                professional: 8.0,
+                infoValue: 7.8
+            },
+            {
+                rank: 13,
+                id: 'EXP-11',
+                name: "EXP-11: Cultural Values",
+                score: 73.50,
+                query: "corporate culture organizational values workplace",
+                relevance: 6.5,
+                clarity: 7.2,
+                professional: 7.8,
+                infoValue: 6.8
+            },
+            {
+                rank: 14,
+                id: 'EXP-14',
+                name: "EXP-14: Performance Excellence",
+                score: 72.80,
+                query: "business performance excellence optimization",
+                relevance: 7.0,
+                clarity: 7.5,
+                professional: 7.5,
+                infoValue: 7.2
+            },
+            {
+                rank: 15,
+                id: 'EXP-16',
+                name: "EXP-16: PR Strategy",
+                score: 71.90,
+                query: "public relations corporate communications crisis",
+                relevance: 7.5,
+                clarity: 7.0,
+                professional: 7.2,
+                infoValue: 6.8
+            },
+            {
+                rank: 16,
+                id: 'EXP-04',
+                name: "EXP-04: Innovation Technology",
+                score: 70.50,
+                query: "business technology innovation digital transformation",
+                relevance: 6.0,
+                clarity: 7.2,
+                professional: 7.5,
+                infoValue: 7.0
+            },
+            {
+                rank: 17,
+                id: 'EXP-05',
+                name: "EXP-05: Competitive Dynamics",
+                score: 69.80,
+                query: "competitive market analysis business competition",
+                relevance: 6.2,
+                clarity: 6.8,
+                professional: 7.0,
+                infoValue: 6.5
+            },
+            {
+                rank: 18,
+                id: 'EXP-17',
+                name: "EXP-17: Global Expansion",
+                score: 68.90,
+                query: "global business expansion international markets",
+                relevance: 5.8,
+                clarity: 6.5,
+                professional: 7.0,
+                infoValue: 6.2
+            },
+            {
+                rank: 19,
+                id: 'EXP-18',
+                name: "EXP-18: Sustainability Focus",
+                score: 67.20,
+                query: "corporate sustainability environmental responsibility",
+                relevance: 5.5,
+                clarity: 6.8,
+                professional: 7.2,
+                infoValue: 6.0
+            },
+            {
+                rank: 20,
+                id: 'EXP-19',
+                name: "EXP-19: Industry Trends",
+                score: 65.50,
+                query: "industry trends market analysis sector development",
+                relevance: 6.0,
+                clarity: 6.2,
+                professional: 6.8,
+                infoValue: 6.5
+            }
+        ];
+        
+        // Initialize votes from localStorage
+        let votes = JSON.parse(localStorage.getItem('imagefoxVotes')) || {};
+        
+        function saveVotes() {
+            localStorage.setItem('imagefoxVotes', JSON.stringify(votes));
+        }
+        
+        function vote(expId, direction) {
+            if (!votes[expId]) {
+                votes[expId] = { up: 0, down: 0 };
+            }
+            votes[expId][direction]++;
+            saveVotes();
+            updateVoteDisplay(expId);
+        }
+        
+        function updateVoteDisplay(expId) {
+            const voteCount = document.getElementById(`votes-${expId}`);
+            if (voteCount && votes[expId]) {
+                const total = votes[expId].up - votes[expId].down;
+                voteCount.textContent = `Votes: ${total > 0 ? '+' : ''}${total}`;
+            }
+        }
+        
+        function createExperimentCard(exp) {
+            const voteData = votes[exp.id] || { up: 0, down: 0 };
+            const totalVotes = voteData.up - voteData.down;
+            
+            return `
+                <div class="experiment-card">
+                    <img src="${experimentImages[exp.id]}" alt="${exp.name}" class="experiment-image">
+                    <div class="experiment-content">
+                        <div class="experiment-header">
+                            <div class="experiment-rank">${exp.rank}</div>
+                            <div class="experiment-score">${exp.score}/10</div>
+                        </div>
+                        <div class="experiment-name">${exp.name}</div>
+                        <div class="experiment-query">"${exp.query}"</div>
+                        <div class="parameters">
+                            <div class="parameter">
+                                <span class="parameter-name">Relevance:</span>
+                                <span class="parameter-value">${exp.relevance}</span>
+                            </div>
+                            <div class="parameter">
+                                <span class="parameter-name">Clarity:</span>
+                                <span class="parameter-value">${exp.clarity}</span>
+                            </div>
+                            <div class="parameter">
+                                <span class="parameter-name">Professional:</span>
+                                <span class="parameter-value">${exp.professional}</span>
+                            </div>
+                            <div class="parameter">
+                                <span class="parameter-name">Info Value:</span>
+                                <span class="parameter-value">${exp.infoValue}</span>
+                            </div>
+                        </div>
+                        <div class="voting-section">
+                            <div class="vote-buttons">
+                                <button class="vote-btn vote-up" onclick="vote('${exp.id}', 'up')">👍</button>
+                                <button class="vote-btn vote-down" onclick="vote('${exp.id}', 'down')">👎</button>
+                            </div>
+                            <div class="vote-count" id="votes-${exp.id}">Votes: ${totalVotes > 0 ? '+' : ''}${totalVotes}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render all experiment cards
+        function renderExperiments() {
+            const grid = document.getElementById('experimentsGrid');
+            grid.innerHTML = experiments.map(exp => createExperimentCard(exp)).join('');
+        }
+        
+        // Initialize on load
+        renderExperiments();
+    </script>
+</body>
+</html>
