@@ -69,6 +69,9 @@ class SelectionResult:
     total_candidates: int
     selection_time: float
     strategy_used: SelectionStrategy
+    ai_selection_explanation: Optional[str] = None  # Claude's detailed explanation
+    selection_model: Optional[str] = None  # Model used for AI selection
+    raw_model_responses: Optional[List[Dict[str, Any]]] = None  # Store all vision model responses
 
 
 @dataclass
@@ -591,6 +594,133 @@ class ImageSelector:
         candidate_urls = [c.image_url for c in candidates]
         content = f"{sorted(candidate_urls)}{count}{strategy.value}{search_query}"
         return hashlib.sha256(content.encode()).hexdigest()[:16]
+    
+    def select_with_ai_reasoning(
+        self,
+        candidates: List[ImageCandidate],
+        count: int = 1,
+        search_query: Optional[str] = None,
+        openrouter_client=None
+    ) -> SelectionResult:
+        """
+        Select images using Claude 3.5 Sonnet for detailed reasoning.
+        
+        Args:
+            candidates: List of image candidates with analysis
+            count: Number of images to select
+            search_query: Original search query for context
+            openrouter_client: OpenRouter client instance
+            
+        Returns:
+            Selection result with AI-powered explanations
+        """
+        from openrouter_client import OpenRouterClient
+        import json
+        
+        # Use provided client or create new one
+        client = openrouter_client or OpenRouterClient()
+        
+        # First do normal scoring
+        base_result = self.select_best(candidates, count, SelectionStrategy.BALANCED, search_query)
+        
+        # Prepare data for Claude
+        candidates_data = []
+        for i, candidate in enumerate(candidates):
+            analysis = candidate.analysis
+            raw_responses = getattr(analysis, 'raw_model_responses', [])
+            
+            candidates_data.append({
+                'index': i,
+                'url': candidate.image_url,
+                'title': candidate.title,
+                'source': candidate.source_url,
+                'dimensions': f"{candidate.metadata.get('width', 'unknown')}x{candidate.metadata.get('height', 'unknown')}",
+                'analysis': {
+                    'description': analysis.description,
+                    'objects': analysis.objects,
+                    'scene_type': analysis.scene_type,
+                    'colors': analysis.colors,
+                    'composition': analysis.composition,
+                    'quality_score': analysis.quality_metrics.overall_score,
+                    'relevance_score': analysis.relevance_score,
+                    'confidence': analysis.confidence_score
+                },
+                'raw_vision_responses': raw_responses,
+                'initial_score': base_result.scores.get(candidate.image_url, 0)
+            })
+        
+        # Create prompt for Claude
+        prompt = f"""You are an expert image curator. Analyze these {len(candidates)} image candidates and select the best {count} images for the search query: "{search_query or 'general purpose'}".
+
+Image Candidates Data:
+{json.dumps(candidates_data, indent=2)}
+
+Please analyze ALL candidates and provide your selection in this exact JSON format:
+{{
+    "selected_indices": [list of {count} indices of selected images],
+    "detailed_explanation": "Comprehensive explanation of why these specific images were selected over others",
+    "individual_explanations": [
+        {{
+            "index": 0,
+            "selected": true/false,
+            "reason": "Specific reason for selecting or rejecting this image"
+        }}
+    ],
+    "selection_criteria_used": ["list", "of", "criteria", "you", "considered"],
+    "comparative_analysis": "How the selected images compare to the alternatives"
+}}
+
+Consider:
+1. Relevance to search query
+2. Technical quality and composition
+3. Uniqueness and diversity if selecting multiple
+4. The vision model's confidence in analysis
+5. Practical usability of the images
+
+Be specific about WHY you selected certain images over others."""
+
+        try:
+            # Call Claude Sonnet 4 for selection
+            response = client.analyze_image(
+                image_input="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",  # 1x1 transparent pixel
+                prompt=prompt,
+                model="anthropic/claude-sonnet-4",
+                max_tokens=2000,
+                temperature=0.3
+            )
+            
+            # Parse Claude's response
+            ai_selection = json.loads(response.description)
+            
+            # Get selected candidates
+            selected_indices = ai_selection.get('selected_indices', [])[:count]
+            selected_candidates = [candidates[i] for i in selected_indices if i < len(candidates)]
+            
+            # Build final result
+            result = SelectionResult(
+                selected_images=selected_candidates,
+                scores={c.image_url: base_result.scores.get(c.image_url, 0) for c in selected_candidates},
+                reasoning=ai_selection.get('detailed_explanation', 'AI selection completed'),
+                alternatives=[c for c in candidates if c not in selected_candidates],
+                diversity_metrics=base_result.diversity_metrics,
+                total_candidates=len(candidates),
+                selection_time=base_result.selection_time,
+                strategy_used=SelectionStrategy.BALANCED,
+                ai_selection_explanation=json.dumps(ai_selection, indent=2),
+                selection_model="anthropic/claude-sonnet-4",
+                raw_model_responses=[cd['raw_vision_responses'] for cd in candidates_data]
+            )
+            
+            logger.info(f"AI-powered selection completed using Claude Sonnet 4")
+            return result
+            
+        except Exception as e:
+            logger.warning(f"AI selection failed, falling back to base result: {e}")
+            # Return base result with added raw responses
+            base_result.raw_model_responses = [
+                getattr(c.analysis, 'raw_model_responses', []) for c in candidates
+            ]
+            return base_result
     
     def clear_cache(self):
         """Clear selection cache."""

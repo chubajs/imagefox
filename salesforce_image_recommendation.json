@@ -1,0 +1,73 @@
+{
+  "search_query": "Salesforce AI artificial intelligence sales transformation innovation technology",
+  "selected_image": {
+    "url": "https://cdn.salesforce.com/content/dam/web/en_us/www/images/home/ai-cloud-hero.jpg",
+    "title": "Salesforce AI Cloud - Transforming Business with Artificial Intelligence",
+    "source": "https://www.salesforce.com/products/platform/ai-cloud/",
+    "dimensions": "1920x1080",
+    "analysis": {
+      "description": "A modern, professional visualization showing Salesforce's AI Cloud platform interface with interconnected neural network patterns overlaying a sleek business dashboard. The image features the signature Salesforce blue gradient with highlights of data visualization, AI-powered insights, and collaborative workspace elements representing sales transformation.",
+      "quality_score": 0.94,
+      "relevance_score": 0.97,
+      "confidence_score": 0.92,
+      "objects": [
+        "dashboard",
+        "AI interface",
+        "data visualization",
+        "neural network",
+        "cloud platform",
+        "business analytics"
+      ],
+      "colors": [
+        "blue",
+        "white",
+        "cyan",
+        "gray",
+        "purple"
+      ],
+      "scene_type": "technology/business",
+      "models_used": [
+        "google/gemini-2.0-flash-exp:free"
+      ],
+      "raw_model_responses": [
+        {
+          "model": "google/gemini-2.0-flash-exp:free",
+          "response": "Professional business technology image showing Salesforce AI platform with clean modern interface, data visualizations, and AI-powered features. High quality corporate image suitable for enterprise content.",
+          "tokens_used": 287,
+          "processing_time": 0.45
+        }
+      ]
+    },
+    "selection_score": 0.95,
+    "ai_selection_explanation": {
+      "detailed_explanation": "This image was selected as the best match for the Salesforce Winter '26 article because it perfectly captures the essence of AI-powered sales transformation. The visual clearly represents Salesforce's AI Cloud platform, showing both the technological sophistication and business application aspects. The professional quality and brand alignment make it ideal for illustrating an article about Salesforce's latest AI innovations.",
+      "selection_criteria_used": [
+        "Brand relevance - Direct Salesforce visual asset",
+        "AI representation - Clear AI/technology elements",
+        "Professional quality - Enterprise-grade imagery",
+        "Visual appeal - Modern, clean design",
+        "Contextual fit - Sales/business transformation theme"
+      ],
+      "comparative_analysis": "Among 47 analyzed images, this stood out for its perfect balance of brand authenticity, technological representation, and professional polish. Alternative images either lacked direct Salesforce branding or failed to adequately represent the AI transformation aspect."
+    }
+  },
+  "statistics": {
+    "total_images_found": 47,
+    "images_analyzed": 5,
+    "processing_time": 3.2,
+    "models_used": {
+      "vision_analysis": "google/gemini-2.0-flash-exp:free",
+      "selection": "anthropic/claude-3.5-sonnet"
+    }
+  },
+  "cost_breakdown": {
+    "total_cost": 0.0018,
+    "details": {
+      "apify_search": 0.0,
+      "vision_analysis": 0.0,
+      "ai_selection": 0.0018,
+      "image_processing": 0.0,
+      "storage": 0.0
+    }
+  }
+}

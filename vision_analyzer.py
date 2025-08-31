@@ -60,6 +60,7 @@ class ComprehensiveAnalysis:
     cost_estimate: float
     confidence_score: float
     timestamp: str
+    raw_model_responses: Optional[List[Dict[str, Any]]] = None  # Store original responses
 
 
 class VisionAnalyzer:
@@ -101,9 +102,9 @@ class VisionAnalyzer:
         self.relevance_weight = float(os.getenv('RELEVANCE_WEIGHT', '0.6'))
         self.enable_multi_model = os.getenv('ENABLE_MULTI_MODEL_ANALYSIS', 'true').lower() == 'true'
         
-        # Model selection strategy
-        self.primary_models = ['openai/gpt-4-vision-preview', 'anthropic/claude-3-opus']
-        self.fallback_models = ['anthropic/claude-3-sonnet', 'anthropic/claude-3-haiku']
+        # Model selection strategy - Using Gemini 2.0 Flash Lite for primary analysis
+        self.primary_models = ['google/gemini-2.0-flash-lite-001']
+        self.fallback_models = ['anthropic/claude-sonnet-4', 'anthropic/claude-3-haiku']
         
         # Analysis cache
         self.analysis_cache = {}
@@ -195,9 +196,15 @@ class VisionAnalyzer:
                     model=model
                 )
                 
-                return self._convert_to_comprehensive_analysis(
+                analysis = self._convert_to_comprehensive_analysis(
                     result, [model], search_query
                 )
+                # Add raw response
+                analysis.raw_model_responses = [{
+                    'model': model,
+                    'response': asdict(result)
+                }]
+                return analysis
                 
             except Exception as e:
                 logger.warning(f"Model {model} failed: {str(e)}")
@@ -212,9 +219,15 @@ class VisionAnalyzer:
                     model=model
                 )
                 
-                return self._convert_to_comprehensive_analysis(
+                analysis = self._convert_to_comprehensive_analysis(
                     result, [model], search_query
                 )
+                # Add raw response
+                analysis.raw_model_responses = [{
+                    'model': model,
+                    'response': asdict(result)
+                }]
+                return analysis
                 
             except Exception as e:
                 logger.warning(f"Fallback model {model} failed: {str(e)}")
@@ -233,6 +246,7 @@ class VisionAnalyzer:
         
         results = []
         models_used = []
+        raw_responses = []  # Store raw responses
         
         # Try to get at least 2 successful analyses
         for model in self.primary_models + self.fallback_models:
@@ -247,6 +261,11 @@ class VisionAnalyzer:
                 )
                 results.append(result)
                 models_used.append(model)
+                # Store raw response data
+                raw_responses.append({
+                    'model': model,
+                    'response': asdict(result)
+                })
                 
             except Exception as e:
                 logger.warning(f"Model {model} failed in multi-model analysis: {str(e)}")
@@ -257,11 +276,15 @@ class VisionAnalyzer:
         
         # Merge results if multiple analyses available
         if len(results) > 1:
-            return self._merge_analyses(results, models_used, search_query)
+            analysis = self._merge_analyses(results, models_used, search_query)
         else:
-            return self._convert_to_comprehensive_analysis(
+            analysis = self._convert_to_comprehensive_analysis(
                 results[0], models_used, search_query
             )
+        
+        # Add raw responses to analysis
+        analysis.raw_model_responses = raw_responses
+        return analysis
     
     def _merge_analyses(
         self,

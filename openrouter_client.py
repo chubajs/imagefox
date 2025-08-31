@@ -38,10 +38,12 @@ class ModelInfo:
     id: str
     name: str
     capabilities: List[ModelCapability]
-    cost_per_token: float
+    cost_per_token: float  # Average cost for backward compatibility
     max_tokens: int
     context_length: int
     quality_score: float  # 1-10 scale
+    input_cost_per_million: Optional[float] = None  # Cost per 1M input tokens
+    output_cost_per_million: Optional[float] = None  # Cost per 1M output tokens
 
 
 @dataclass
@@ -94,6 +96,26 @@ class OpenRouterClient:
             context_length=200000,
             quality_score=8.5
         ),
+        "anthropic/claude-3.5-sonnet": ModelInfo(
+            id="anthropic/claude-3.5-sonnet",
+            name="Claude 3.5 Sonnet",
+            capabilities=[ModelCapability.VISION, ModelCapability.HIGH_QUALITY],
+            cost_per_token=0.003,
+            max_tokens=8192,
+            context_length=200000,
+            quality_score=9.2
+        ),
+        "anthropic/claude-sonnet-4": ModelInfo(
+            id="anthropic/claude-sonnet-4",
+            name="Claude Sonnet 4",
+            capabilities=[ModelCapability.VISION, ModelCapability.HIGH_QUALITY],
+            cost_per_token=0.000009,  # Average of $3/M input + $15/M output = ~$9/M average
+            max_tokens=8192,
+            context_length=1000000,  # 1M context window
+            quality_score=9.5,
+            input_cost_per_million=3.0,  # $3/M input tokens
+            output_cost_per_million=15.0  # $15/M output tokens
+        ),
         "anthropic/claude-3-haiku": ModelInfo(
             id="anthropic/claude-3-haiku",
             name="Claude 3 Haiku",
@@ -111,6 +133,37 @@ class OpenRouterClient:
             max_tokens=2048,
             context_length=32000,
             quality_score=8.0
+        ),
+        "google/gemini-2.0-flash-exp:free": ModelInfo(
+            id="google/gemini-2.0-flash-exp:free",
+            name="Gemini 2.0 Flash Experimental",
+            capabilities=[ModelCapability.VISION, ModelCapability.FAST, ModelCapability.COST_EFFECTIVE],
+            cost_per_token=0.0,  # Free tier
+            max_tokens=8192,
+            context_length=1000000,  # 1M context window
+            quality_score=8.8
+        ),
+        "google/gemini-2.0-flash-lite-001": ModelInfo(
+            id="google/gemini-2.0-flash-lite-001",
+            name="Gemini 2.0 Flash Lite",
+            capabilities=[ModelCapability.VISION, ModelCapability.FAST, ModelCapability.COST_EFFECTIVE],
+            cost_per_token=0.0000001875,  # Average of input/output for backward compatibility
+            max_tokens=8192,
+            context_length=1048576,  # 1M+ context window
+            quality_score=8.5,
+            input_cost_per_million=0.075,  # $0.075/M input tokens
+            output_cost_per_million=0.30  # $0.30/M output tokens
+        ),
+        "anthropic/claude-sonnet-4": ModelInfo(
+            id="anthropic/claude-sonnet-4",
+            name="Claude Sonnet 4",
+            capabilities=[ModelCapability.VISION, ModelCapability.HIGH_QUALITY],
+            cost_per_token=0.000009,  # Average for backward compatibility
+            max_tokens=8192,
+            context_length=1000000,
+            quality_score=9.5,
+            input_cost_per_million=3.0,   # $3/M input tokens
+            output_cost_per_million=15.0  # $15/M output tokens
         )
     }
     
@@ -419,6 +472,12 @@ Format your response as JSON with these fields:
         try:
             choice = response_data['choices'][0]
             content = choice['message']['content']
+            
+            # Debug logging
+            logger.debug(f"Raw API response content: {content[:200]}...")
+            
+            if not content or content.strip() == '':
+                raise ValueError("Empty response content from API")
             
             # Parse JSON response
             analysis_data = json.loads(content)

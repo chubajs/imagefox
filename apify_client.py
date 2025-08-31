@@ -11,7 +11,7 @@ import time
 import hashlib
 import json
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timedelta
 import requests
 from requests.adapters import HTTPAdapter
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class ApifyClient:
     """Client for Apify Google Images Scraper API."""
     
-    DEFAULT_ACTOR_ID = "apify/google-search-scraper"
+    DEFAULT_ACTOR_ID = "hooli~google-images-scraper"
     API_BASE_URL = "https://api.apify.com/v2"
     
     def __init__(self, api_key: Optional[str] = None):
@@ -190,49 +190,78 @@ class ApifyClient:
         # Enforce rate limiting
         self._enforce_rate_limit()
         
-        # Prepare request
-        actor_url = f"{self.API_BASE_URL}/acts/{self.DEFAULT_ACTOR_ID}/run-sync-get-dataset-items"
+        # Prepare request - using correct endpoint for hooli/google-images-scraper
+        actor_url = f"{self.API_BASE_URL}/acts/{self.DEFAULT_ACTOR_ID}/runs"
         
-        # Calculate pages needed for limit
-        results_per_page = min(limit, 100)
-        max_pages = (limit + results_per_page - 1) // results_per_page
-        
+        # Build payload for hooli/google-images-scraper
         payload = {
-            "queries": query,
-            "maxPagesPerQuery": max_pages,
-            "resultsPerPage": results_per_page,
-            "mobileResults": False,
-            "languageCode": language_code,
+            "queries": [query],  # Actor expects array of queries
+            "maxResults": limit,
             "countryCode": country_code,
-            "maxConcurrency": 10,
-            "saveHtml": False,
-            "saveHtmlToKeyValueStore": False,
-            "includeUnfilteredResults": not safe_search,
+            "languageCode": language_code,
+            "safeSearch": "moderate" if safe_search else "off",
             **kwargs
         }
         
         try:
             logger.info(f"Searching for images: '{query}' (limit={limit})")
             
-            # Make API request
+            # Make API request with token
             response = self.session.post(
                 actor_url,
                 json=payload,
+                params={"token": self.api_key},
                 timeout=int(os.getenv('REQUEST_TIMEOUT', '60'))
             )
             
             # Handle response
-            if response.status_code == 200:
-                data = response.json()
-                results = self._parse_search_results(data, limit)
+            if response.status_code in [200, 201]:
+                # For /runs endpoint, we need to wait for completion and get dataset
+                run_data = response.json()
+                run_id = run_data.get('data', {}).get('id')
                 
-                # Cache results
-                if use_cache:
-                    self._save_to_cache(cache_key, results)
-                
-                logger.info(f"Found {len(results)} images for query '{query}'")
-                return results
-                
+                if run_id:
+                    # Wait for run to complete and get dataset
+                    dataset_url = f"{self.API_BASE_URL}/actor-runs/{run_id}/dataset/items"
+                    
+                    # Poll for completion (max 60 seconds)
+                    import time
+                    for _ in range(30):  # 30 * 2 = 60 seconds max
+                        time.sleep(2)
+                        status_response = self.session.get(
+                            f"{self.API_BASE_URL}/actor-runs/{run_id}",
+                            params={"token": self.api_key}
+                        )
+                        if status_response.status_code == 200:
+                            status_data = status_response.json()
+                            if status_data.get('data', {}).get('status') in ['SUCCEEDED', 'FAILED', 'ABORTED']:
+                                break
+                    
+                    # Get dataset items
+                    dataset_response = self.session.get(
+                        dataset_url,
+                        params={"token": self.api_key}
+                    )
+                    
+                    if dataset_response.status_code == 200:
+                        data = dataset_response.json()
+                        logger.info(f"Dataset response type: {type(data)}, keys: {list(data.keys()) if isinstance(data, dict) else 'list'}")
+                        if isinstance(data, list) and len(data) > 0:
+                            logger.info(f"First item keys: {list(data[0].keys())}")
+                            logger.info(f"First item sample: {json.dumps(data[0], indent=2)[:500]}")
+                        results = self._parse_search_results(data, limit)
+                        
+                        # Cache results
+                        if use_cache:
+                            self._save_to_cache(cache_key, results)
+                        
+                        logger.info(f"Found {len(results)} images for query '{query}'")
+                        return results
+                    else:
+                        raise Exception(f"Failed to get dataset: {dataset_response.text}")
+                else:
+                    raise Exception(f"No run ID in response: {run_data}")
+                    
             elif response.status_code == 402:
                 raise Exception("Insufficient Apify credits")
             elif response.status_code == 429:
@@ -245,9 +274,9 @@ class ApifyClient:
             capture_exception(e)
             raise
     
-    def _parse_search_results(self, data: List[Dict], limit: int) -> List[Dict]:
+    def _parse_search_results(self, data: Union[List[Dict], Dict], limit: int) -> List[Dict]:
         """
-        Parse and format search results from Apify response.
+        Parse and format search results from hooli/google-images-scraper response.
         
         Args:
             data: Raw response data from Apify
@@ -259,37 +288,37 @@ class ApifyClient:
         results = []
         seen_urls = set()
         
-        for item in data:
-            # Extract organic results (images)
-            organic_results = item.get('organicResults', [])
+        # Handle different response formats
+        items = data if isinstance(data, list) else data.get('items', [])
+        
+        for item in items:
+            # hooli/google-images-scraper actual format
+            image_url = item.get('imageUrl')
             
-            for result in organic_results:
-                # Skip if no image URL
-                image_url = result.get('imageUrl')
-                if not image_url or image_url in seen_urls:
-                    continue
-                
-                seen_urls.add(image_url)
-                
-                # Format result
-                formatted_result = {
-                    'image_url': image_url,
-                    'thumbnail_url': result.get('thumbnailUrl', image_url),
-                    'source_url': result.get('url', ''),
-                    'title': result.get('title', ''),
-                    'description': result.get('description', ''),
-                    'displayed_url': result.get('displayedUrl', ''),
-                    'width': result.get('width'),
-                    'height': result.get('height'),
-                    'search_query': item.get('searchQuery', {}).get('term', ''),
-                    'timestamp': datetime.now().isoformat()
-                }
-                
-                results.append(formatted_result)
-                
-                # Check limit
-                if len(results) >= limit:
-                    return results
+            if not image_url or image_url in seen_urls:
+                continue
+            
+            seen_urls.add(image_url)
+            
+            # Format result with actual field names from hooli/google-images-scraper
+            formatted_result = {
+                'image_url': image_url,
+                'thumbnail_url': item.get('thumbnailUrl', image_url),
+                'source_url': item.get('contentUrl', ''),  # contentUrl is the source page
+                'title': item.get('title', ''),
+                'description': item.get('description', ''),
+                'displayed_url': item.get('origin', ''),  # origin is the domain
+                'width': item.get('imageWidth', 0),
+                'height': item.get('imageHeight', 0),
+                'search_query': item.get('query', ''),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            results.append(formatted_result)
+            
+            # Check limit
+            if len(results) >= limit:
+                return results
         
         return results
     

@@ -83,6 +83,9 @@ tools/venv/bin/python tools/<tool_name>.py
 - Include relevant context in error reports
 - Log errors before raising exceptions for better debugging
 - Never suppress exceptions that should be handled by the caller
+- **FORBIDDEN**: Never use mock data or simulated results - always report actual errors
+- **REQUIRED**: When APIs fail, report the exact error instead of creating demonstrations
+- **REQUIRED**: If unable to retrieve real data, clearly state the failure and its cause
 
 ### Configuration
 - Store sensitive values in environment variables
