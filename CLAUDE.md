@@ -216,6 +216,23 @@ pip install -r requirements.txt
 - Link commits to Linear issues using the issue ID (e.g., SER-XXX)
 - Include Linear issue IDs in PR descriptions
 
+#### Project Assignment Rule
+**MANDATORY**: When creating Linear issues that need to be assigned to the ImageFox project:
+
+1. **During Creation**: MCP Linear tools (`mcp__linear__linear_create_issue`) do NOT support `projectId` parameter
+2. **After Creation**: Use `tools/link_issues_to_project.py` to assign issues to projects
+3. **Required Parameters**:
+   - Team ID: `a168f90b-ba6c-41d9-87ed-4db05ba428a7` (Serge & Agents)
+   - Project ID: `a84c6a45-1304-45d5-8d46-d9c926248ec1` (ImageFox)
+4. **Command Format**:
+   ```bash
+   tools/venv/bin/python tools/link_issues_to_project.py \
+     --team-id "a168f90b-ba6c-41d9-87ed-4db05ba428a7" \
+     --project-id "a84c6a45-1304-45d5-8d46-d9c926248ec1" \
+     --range "SER-XX:SER-YY"
+   ```
+5. **When to Use**: Always use this tool immediately after creating multiple issues that should appear in the ImageFox project dashboard
+
 ## Project Structure
 
 ### Core Components

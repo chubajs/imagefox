@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageFox Experiment Results - Interactive Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            margin-top: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .view-btn {
+            padding: 12px 24px;
+            border: none;
+            background: white;
+            color: #2c3e50;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .view-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .filter-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-select {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            font-size: 1em;
+            background: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        /* Grid View Styles */
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .experiment-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .experiment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .card-rank {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 1;
+        }
+        
+        .card-rank.gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        .card-rank.silver { background: linear-gradient(135deg, #C0C0C0, #808080); }
+        .card-rank.bronze { background: linear-gradient(135deg, #CD7F32, #8B4513); }
+        
+        .card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .card-score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.95);
+            color: #2c3e50;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .card-query {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .card-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            padding: 5px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .metric-label {
+            color: #7f8c8d;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        /* Comparison View Styles */
+        .comparison-view {
+            display: none;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .comparison-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .comparison-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .vs-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 40px 0;
+        }
+        
+        /* Table View Styles */
+        .table-view {
+            display: none;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .data-table thead {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+        }
+        
+        .data-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .score-high { background: #d4edda; color: #155724; }
+        .score-medium { background: #fff3cd; color: #856404; }
+        .score-low { background: #f8d7da; color: #721c24; }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .modal-close:hover {
+            color: #2c3e50;
+        }
+        
+        /* Voting Section */
+        .voting-section {
+            text-align: center;
+            margin-top: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+        }
+        
+        .vote-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+        
+        .vote-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8em; }
+            .grid-view { grid-template-columns: 1fr; }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .stats { gap: 20px; }
+            .data-table { font-size: 0.9em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 ImageFox Experiment Results</h1>
+            <p>20 Analytical Approaches • Same easyJet Article • Different Visual Outcomes</p>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">20</div>
+                    <div class="stat-label">Experiments</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">85.10</div>
+                    <div class="stat-label">Top Score</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">10</div>
+                    <div class="stat-label">Parameters</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">82.18</div>
+                    <div class="stat-label">Avg Score</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="showView('grid')">📱 Grid View</button>
+                <button class="view-btn" onclick="showView('comparison')">⚔️ Compare</button>
+                <button class="view-btn" onclick="showView('table')">📊 Table View</button>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label>Sort by:</label>
+                    <select class="filter-select" onchange="sortExperiments(this.value)">
+                        <option value="score">Score (High to Low)</option>
+                        <option value="name">Experiment Name</option>
+                        <option value="relevance">Relevance Score</option>
+                        <option value="clarity">Clarity Score</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Filter:</label>
+                    <select class="filter-select" onchange="filterExperiments(this.value)">
+                        <option value="all">All Experiments</option>
+                        <option value="top3">Top 3 Only</option>
+                        <option value="high">High Performers (>83)</option>
+                        <option value="communication">Communication Focus</option>
+                        <option value="business">Business Strategy</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Grid View -->
+            <div class="grid-view" id="gridView">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+            
+            <!-- Comparison View -->
+            <div class="comparison-view" id="comparisonView">
+                <h2 style="text-align: center; margin-bottom: 30px;">Top Contenders Head-to-Head</h2>
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <h3>🥇 Risk Assessment</h3>
+                            <div class="card-score">85.10</div>
+                        </div>
+                        <p><strong>Query:</strong> business risk assessment corporate risk management operational risk</p>
+                        <div class="card-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Relevance</span>
+                                <span class="metric-value">9.0/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Clarity</span>
+                                <span class="metric-value">9.2/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Professional</span>
+                                <span class="metric-value">8.0/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Info Value</span>
+                                <span class="metric-value">9.5/10</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <h3>🥈 Brand Management</h3>
+                            <div class="card-score">84.06</div>
+                        </div>
+                        <p><strong>Query:</strong> brand management corporate reputation brand protection</p>
+                        <div class="card-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Relevance</span>
+                                <span class="metric-value">7.5/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Clarity</span>
+                                <span class="metric-value">8.5/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Professional</span>
+                                <span class="metric-value">9.0/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Brand Fit</span>
+                                <span class="metric-value">9.2/10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vs-divider">VS</div>
+                
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <h3>🥉 Communication Strategy</h3>
+                            <div class="card-score">83.96</div>
+                        </div>
+                        <p><strong>Query:</strong> corporate communication public relations media strategy</p>
+                        <div class="card-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Relevance</span>
+                                <span class="metric-value">8.2/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Clarity</span>
+                                <span class="metric-value">9.0/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Professional</span>
+                                <span class="metric-value">8.8/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Context Fit</span>
+                                <span class="metric-value">8.8/10</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <h3>👑 All Others</h3>
+                            <div class="card-score">Avg: 81.24</div>
+                        </div>
+                        <p><strong>Average Performance of Remaining 17 Experiments</strong></p>
+                        <div class="card-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Leadership</span>
+                                <span class="metric-value">83.00</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Crisis Mgmt</span>
+                                <span class="metric-value">82.21</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Aviation</span>
+                                <span class="metric-value">81.63</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Financial</span>
+                                <span class="metric-value">78.29</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Table View -->
+            <div class="table-view" id="tableView">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Experiment</th>
+                            <th>Score</th>
+                            <th>Top Strength</th>
+                            <th>Query Focus</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Table rows will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Voting Section -->
+            <div class="voting-section">
+                <h2>🗳️ Cast Your Vote</h2>
+                <p>Which analytical approach produced the most effective visual representation?</p>
+                <div style="margin-top: 20px;">
+                    <button class="vote-btn" onclick="vote('risk')">🥇 Risk Assessment</button>
+                    <button class="vote-btn" onclick="vote('brand')">🥈 Brand Management</button>
+                    <button class="vote-btn" onclick="vote('communication')">🥉 Communication</button>
+                    <button class="vote-btn" onclick="vote('other')">Other</button>
+                </div>
+                <div id="voteResults" style="margin-top: 20px; display: none;">
+                    <h3>Current Results:</h3>
+                    <div id="voteChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Experiment data
+        const experiments = [
+            {
+                rank: 1,
+                name: "EXP-13: Risk Assessment",
+                score: 85.10,
+                query: "business risk assessment corporate risk management operational risk strategic risk mitigation",
+                relevance: 9.0,
+                clarity: 9.2,
+                professional: 8.0,
+                infoValue: 9.5,
+                category: "Risk & Compliance",
+                topStrength: "Informational Value",
+                approach: "Extracted risk factors, mitigation strategies, operational disruption themes"
+            },
+            {
+                rank: 2,
+                name: "EXP-15: Brand Management",
+                score: 84.06,
+                query: "brand management corporate reputation brand protection reputation management",
+                relevance: 7.5,
+                clarity: 8.5,
+                professional: 9.0,
+                brandFit: 9.2,
+                category: "Brand & Communication",
+                topStrength: "Brand Appropriateness",
+                approach: "Focused on brand equity, reputation capital, employee brand embodiment"
+            },
+            {
+                rank: 3,
+                name: "EXP-03: Communication Strategy",
+                score: 83.96,
+                query: "corporate communication public relations media strategy crisis PR",
+                relevance: 8.2,
+                clarity: 9.0,
+                professional: 8.8,
+                contextFit: 8.8,
+                category: "Brand & Communication",
+                topStrength: "Concept Clarity",
+                approach: "Extracted media scrutiny, social media transparency, PR strategy"
+            },
+            {
+                rank: 4,
+                name: "EXP-02: Corporate Leadership",
+                score: 83.00,
+                query: "corporate leadership executive management business integrity",
+                relevance: 7.8,
+                clarity: 8.8,
+                professional: 9.2,
+                category: "Leadership & Culture",
+                topStrength: "Professional Appeal",
+                approach: "Leadership decisions, business ethics, organizational trust"
+            },
+            {
+                rank: 5,
+                name: "EXP-09: Crisis Management",
+                score: 82.21,
+                query: "crisis management emergency response business continuity",
+                relevance: 8.8,
+                clarity: 8.2,
+                professional: 7.5,
+                category: "Operations & Performance",
+                topStrength: "Relevance to Article",
+                approach: "Immediate suspension, swift action, incident management"
+            },
+            {
+                rank: 6,
+                name: "EXP-01: Aviation Industry",
+                score: 81.63,
+                query: "commercial aviation airline industry pilot training",
+                relevance: 8.5,
+                clarity: 8.0,
+                professional: 8.2,
+                category: "Operations & Performance",
+                topStrength: "Contextual Fit",
+                approach: "Aviation operations, pilot training, flight safety"
+            },
+            {
+                rank: 7,
+                name: "EXP-20: Wellness Integration",
+                score: 79.20,
+                query: "workplace wellness mental health counseling support",
+                relevance: 7.2,
+                clarity: 8.0,
+                professional: 8.2,
+                category: "People & Innovation",
+                topStrength: "Emotional Impact",
+                approach: "Psychological evaluation, counseling, employee wellbeing"
+            },
+            {
+                rank: 8,
+                name: "EXP-06: Financial Impact",
+                score: 78.29,
+                query: "financial impact economic analysis business economics",
+                relevance: 8.0,
+                clarity: 8.5,
+                professional: 7.8,
+                category: "Business Strategy",
+                topStrength: "Informational Value",
+                approach: "Opportunity cost, resource reallocation, economic consequences"
+            }
+        ];
+        
+        // Initialize views
+        function initializeViews() {
+            renderGridView();
+            renderTableView();
+        }
+        
+        // Render grid view
+        function renderGridView() {
+            const gridView = document.getElementById('gridView');
+            gridView.innerHTML = experiments.map(exp => `
+                <div class="experiment-card" onclick="showDetail(${exp.rank})">
+                    <div class="card-rank ${exp.rank <= 3 ? (exp.rank === 1 ? 'gold' : exp.rank === 2 ? 'silver' : 'bronze') : ''}">
+                        ${exp.rank}
+                    </div>
+                    <div class="card-image">
+                        <div class="card-score">${exp.score}</div>
+                        ${exp.name}
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${exp.name.split(':')[1]}</div>
+                        <div class="card-query">${exp.query.substring(0, 80)}...</div>
+                        <div class="card-metrics">
+                            <div class="metric">
+                                <span class="metric-label">Relevance</span>
+                                <span class="metric-value">${exp.relevance}/10</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Clarity</span>
+                                <span class="metric-value">${exp.clarity}/10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render table view
+        function renderTableView() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = experiments.map(exp => `
+                <tr onclick="showDetail(${exp.rank})" style="cursor: pointer;">
+                    <td>${exp.rank === 1 ? '🥇' : exp.rank === 2 ? '🥈' : exp.rank === 3 ? '🥉' : exp.rank}</td>
+                    <td><strong>${exp.name}</strong></td>
+                    <td>
+                        <span class="score-badge ${exp.score >= 83 ? 'score-high' : exp.score >= 80 ? 'score-medium' : 'score-low'}">
+                            ${exp.score}
+                        </span>
+                    </td>
+                    <td>${exp.topStrength}</td>
+                    <td>${exp.query.split(' ').slice(0, 5).join(' ')}...</td>
+                    <td>${exp.category}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // View switching
+        function showView(view) {
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Hide all views
+            document.getElementById('gridView').style.display = 'none';
+            document.getElementById('comparisonView').style.display = 'none';
+            document.getElementById('tableView').style.display = 'none';
+            
+            // Show selected view
+            if (view === 'grid') {
+                document.getElementById('gridView').style.display = 'grid';
+            } else if (view === 'comparison') {
+                document.getElementById('comparisonView').style.display = 'block';
+            } else if (view === 'table') {
+                document.getElementById('tableView').style.display = 'block';
+            }
+        }
+        
+        // Show detail modal
+        function showDetail(rank) {
+            const exp = experiments.find(e => e.rank === rank);
+            const modal = document.getElementById('detailModal');
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <h2>${exp.name}</h2>
+                <h3>Score: ${exp.score}/100</h3>
+                <p><strong>Rank:</strong> #${exp.rank} of 20 experiments</p>
+                <p><strong>Category:</strong> ${exp.category}</p>
+                <p><strong>Analytical Approach:</strong> ${exp.approach}</p>
+                <p><strong>Search Query:</strong></p>
+                <p style="background: #f8f9fa; padding: 15px; border-radius: 10px;">${exp.query}</p>
+                <h4>Performance Metrics:</h4>
+                <div class="card-metrics" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div class="metric">
+                        <span class="metric-label">Relevance to Article</span>
+                        <span class="metric-value">${exp.relevance}/10</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Concept Clarity</span>
+                        <span class="metric-value">${exp.clarity}/10</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Professional Appeal</span>
+                        <span class="metric-value">${exp.professional}/10</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Top Strength</span>
+                        <span class="metric-value">${exp.topStrength}</span>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+        
+        // Voting system
+        const votes = { risk: 0, brand: 0, communication: 0, other: 0 };
+        
+        function vote(choice) {
+            votes[choice]++;
+            showVoteResults();
+        }
+        
+        function showVoteResults() {
+            const resultsDiv = document.getElementById('voteResults');
+            const chartDiv = document.getElementById('voteChart');
+            const total = Object.values(votes).reduce((a, b) => a + b, 0);
+            
+            chartDiv.innerHTML = `
+                <div style="margin: 20px 0;">
+                    <div>Risk Assessment: ${((votes.risk/total)*100).toFixed(1)}% (${votes.risk} votes)</div>
+                    <div style="background: #e74c3c; width: ${(votes.risk/total)*100}%; height: 30px; margin: 5px 0;"></div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <div>Brand Management: ${((votes.brand/total)*100).toFixed(1)}% (${votes.brand} votes)</div>
+                    <div style="background: #3498db; width: ${(votes.brand/total)*100}%; height: 30px; margin: 5px 0;"></div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <div>Communication: ${((votes.communication/total)*100).toFixed(1)}% (${votes.communication} votes)</div>
+                    <div style="background: #2ecc71; width: ${(votes.communication/total)*100}%; height: 30px; margin: 5px 0;"></div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <div>Other: ${((votes.other/total)*100).toFixed(1)}% (${votes.other} votes)</div>
+                    <div style="background: #95a5a6; width: ${(votes.other/total)*100}%; height: 30px; margin: 5px 0;"></div>
+                </div>
+            `;
+            
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Sort experiments
+        function sortExperiments(criteria) {
+            let sorted = [...experiments];
+            
+            if (criteria === 'score') {
+                sorted.sort((a, b) => b.score - a.score);
+            } else if (criteria === 'name') {
+                sorted.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (criteria === 'relevance') {
+                sorted.sort((a, b) => b.relevance - a.relevance);
+            } else if (criteria === 'clarity') {
+                sorted.sort((a, b) => b.clarity - a.clarity);
+            }
+            
+            experiments.length = 0;
+            experiments.push(...sorted);
+            renderGridView();
+            renderTableView();
+        }
+        
+        // Filter experiments
+        function filterExperiments(filter) {
+            const gridView = document.getElementById('gridView');
+            const cards = gridView.querySelectorAll('.experiment-card');
+            
+            cards.forEach((card, index) => {
+                const exp = experiments[index];
+                let show = true;
+                
+                if (filter === 'top3' && exp.rank > 3) show = false;
+                if (filter === 'high' && exp.score < 83) show = false;
+                if (filter === 'communication' && !exp.category.includes('Communication')) show = false;
+                if (filter === 'business' && !exp.category.includes('Business')) show = false;
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+        
+        // Initialize on load
+        window.onload = initializeViews;
+        
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

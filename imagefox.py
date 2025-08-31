@@ -299,43 +299,64 @@ class ImageFox:
             async def analyze_single_image(image_data):
                 async with semaphore:
                     try:
-                        # Create metadata
+                        # Download image first
+                        image_url = image_data.get('image_url', '')
+                        success, file_path, error = await self.image_processor.download_image(image_url)
+                        
+                        if not success:
+                            logger.warning(f"Failed to download image {image_url}: {error}")
+                            return None
+                        
+                        # Create metadata - map from Apify response format
                         metadata = ImageMetadata(
-                            url=image_data.get('url', ''),
+                            url=image_url,
                             title=image_data.get('title', ''),
-                            source_url=image_data.get('source', ''),
+                            source_url=image_data.get('source_url', ''),
                             width=image_data.get('width'),
                             height=image_data.get('height')
                         )
                         
-                        # Analyze image
+                        # Analyze image using downloaded file path
                         analysis = self.vision_analyzer.analyze_image(
-                            metadata,
+                            file_path,
                             search_query=request.query
                         )
                         
                         # Create candidate
                         candidate = ImageCandidate(
-                            url=metadata.url,
+                            image_url=metadata.url,
                             source_url=metadata.source_url,
                             title=metadata.title,
-                            width=metadata.width or 0,
-                            height=metadata.height or 0,
-                            analysis_data=asdict(analysis)
+                            analysis=analysis,
+                            metadata={'width': metadata.width or 0, 'height': metadata.height or 0},
+                            search_query=request.query
                         )
+                        
+                        # Clean up downloaded file
+                        try:
+                            if file_path and os.path.exists(file_path):
+                                os.unlink(file_path)
+                        except Exception as cleanup_error:
+                            logger.warning(f"Failed to cleanup temporary file {file_path}: {cleanup_error}")
                         
                         return candidate
                         
                     except Exception as e:
                         logger.warning(f"Failed to analyze image {image_data.get('url', 'unknown')}: {e}")
+                        # Clean up downloaded file even in case of error
+                        try:
+                            if 'file_path' in locals() and file_path and os.path.exists(file_path):
+                                os.unlink(file_path)
+                        except Exception:
+                            pass
                         return None
             
             # Analyze images concurrently
             tasks = [analyze_single_image(image) for image in search_results]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             
-            # Filter successful results
-            candidates = [r for r in results if isinstance(r, ImageCandidate)]
+            # Filter successful results (exclude None and exceptions)
+            candidates = [r for r in results if r is not None and isinstance(r, ImageCandidate)]
             
             logger.info(f"Successfully analyzed {len(candidates)}/{len(search_results)} images")
             return candidates
@@ -416,7 +437,7 @@ class ImageFox:
                         result = await processor.process_image(
                             image.url,
                             optimize=True,
-                            generate_thumbnail=True
+                            generate_thumb=True
                         )
                         
                         if result.success:
