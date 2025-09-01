@@ -1,7 +1,8 @@
-# ImageFox - Intelligent Image Search Agent
+# ImageFox - AI-Powered Image Search & Selection
 
-## Overview
-ImageFox is an AI-powered image search and selection agent that is part of the Co.Actor Scale content generation system. It intelligently searches for images based on prompts, analyzes them using computer vision LLMs, and selects the best candidates for content creation.
+## 🎯 Project Status: Methodology Validated ✅
+
+ImageFox is an intelligent image search and selection system that proves different analytical approaches to the same content produce different image search results. Part of the Co.Actor Scale content generation system.
 
 ## Features
 - **Smart Image Search**: Uses Apify's Google Images API for comprehensive image discovery
