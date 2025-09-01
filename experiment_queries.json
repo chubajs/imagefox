@@ -1,0 +1,209 @@
+[
+  {
+    "experiment_id": "EXP-01",
+    "experiment_name": "Aviation Industry Focus",
+    "extracted_themes": [
+      "pilot operations",
+      "flight safety",
+      "aviation industry",
+      "airline management"
+    ],
+    "search_query": "commercial aviation airline industry pilot training flight operations aviation safety",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-02",
+    "experiment_name": "Corporate Trust & Leadership",
+    "extracted_themes": [
+      "decision making",
+      "organizational trust"
+    ],
+    "search_query": "corporate leadership executive management business integrity organizational trust",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-03",
+    "experiment_name": "Media & Communication Strategy",
+    "extracted_themes": [
+      "corporate communication",
+      "public relations",
+      "transparency"
+    ],
+    "search_query": "corporate communication public relations media strategy crisis PR",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-04",
+    "experiment_name": "Innovation Technology",
+    "extracted_themes": [
+      "technology adoption",
+      "digital innovation"
+    ],
+    "search_query": "business technology innovation digital transformation aviation tech",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-05",
+    "experiment_name": "Competitive Market Dynamics",
+    "extracted_themes": [
+      "market competition",
+      "industry dynamics"
+    ],
+    "search_query": "competitive market analysis business competition airline industry",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-06",
+    "experiment_name": "Financial Impact",
+    "extracted_themes": [
+      "financial impact",
+      "operational costs"
+    ],
+    "search_query": "financial impact economic analysis business economics cost management",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-07",
+    "experiment_name": "HR & Talent Management",
+    "extracted_themes": [
+      "talent management",
+      "employee relations"
+    ],
+    "search_query": "human resources talent management employee development workplace policy",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-08",
+    "experiment_name": "Customer Experience",
+    "extracted_themes": [
+      "customer service",
+      "passenger experience"
+    ],
+    "search_query": "customer experience stakeholder management service quality passenger safety",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-09",
+    "experiment_name": "Crisis Management",
+    "extracted_themes": [
+      "incident response",
+      "emergency management",
+      "crisis response"
+    ],
+    "search_query": "crisis management emergency response business continuity incident management",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-10",
+    "experiment_name": "Regulatory Compliance",
+    "extracted_themes": [
+      "regulatory compliance",
+      "policy adherence"
+    ],
+    "search_query": "regulatory compliance aviation regulations business governance safety standards",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-11",
+    "experiment_name": "Cultural Values",
+    "extracted_themes": [
+      "organizational culture",
+      "values alignment"
+    ],
+    "search_query": "corporate culture organizational values workplace ethics safety culture",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-12",
+    "experiment_name": "Strategic Planning",
+    "extracted_themes": [
+      "strategic planning",
+      "business strategy"
+    ],
+    "search_query": "strategic business planning corporate strategy airline operations management",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-13",
+    "experiment_name": "Risk Assessment",
+    "extracted_themes": [
+      "risk assessment",
+      "safety management",
+      "incident prevention",
+      "risk mitigation"
+    ],
+    "search_query": "business risk assessment corporate risk management operational risk mitigation",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-14",
+    "experiment_name": "Performance Excellence",
+    "extracted_themes": [
+      "operational excellence",
+      "performance metrics"
+    ],
+    "search_query": "business performance excellence operational efficiency quality management",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-15",
+    "experiment_name": "Brand Management",
+    "extracted_themes": [
+      "reputation management",
+      "brand trust"
+    ],
+    "search_query": "brand management corporate reputation brand protection reputation crisis",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-16",
+    "experiment_name": "PR Strategy",
+    "extracted_themes": [
+      "public relations",
+      "media management"
+    ],
+    "search_query": "public relations crisis communication media management damage control",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-17",
+    "experiment_name": "Global Operations",
+    "extracted_themes": [
+      "global operations",
+      "international business"
+    ],
+    "search_query": "global business operations international aviation cross-border management",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-18",
+    "experiment_name": "Sustainability Focus",
+    "extracted_themes": [
+      "sustainability",
+      "corporate responsibility"
+    ],
+    "search_query": "corporate sustainability responsible business aviation environment safety",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-19",
+    "experiment_name": "Industry Trends",
+    "extracted_themes": [
+      "industry trends",
+      "market analysis"
+    ],
+    "search_query": "aviation industry trends airline sector analysis market developments",
+    "status": "ready_for_apify_search"
+  },
+  {
+    "experiment_id": "EXP-20",
+    "experiment_name": "Wellness Integration",
+    "extracted_themes": [
+      "employee wellness",
+      "support programs",
+      "stress management"
+    ],
+    "search_query": "workplace wellness employee mental health pilot wellbeing support programs",
+    "status": "ready_for_apify_search"
+  }
+]

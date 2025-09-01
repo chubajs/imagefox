@@ -1,0 +1,46 @@
+{
+  "experiment_id": "EXP-01",
+  "experiment_name": "Aviation Industry Focus",
+  "search_query": "commercial aviation airline pilot safety training operations cockpit",
+  "images_found": 10,
+  "images_analyzed": 1,
+  "best_image": {
+    "url": "https://www.cae.com/content/images/_webp/CAE_BusinessPilotTrainingProgramme_2048x1548_.jpg_webp_40cd750bba9870f18aada2478b24840a.webp",
+    "title": "Business Pilot Training | CAE",
+    "source": "",
+    "analysis": {
+      "relevance_to_article": 8.9,
+      "visual_quality": 9.2,
+      "professional_appeal": 8.6,
+      "concept_clarity": 8.4,
+      "brand_appropriateness": 8.5,
+      "emotional_impact": 8.5,
+      "informational_value": 9.0,
+      "uniqueness": 8.5,
+      "scalability": 9.0,
+      "contextual_fit": 9.2,
+      "total_score": 87.79
+    }
+  },
+  "all_images": [
+    {
+      "url": "https://www.cae.com/content/images/_webp/CAE_BusinessPilotTrainingProgramme_2048x1548_.jpg_webp_40cd750bba9870f18aada2478b24840a.webp",
+      "title": "Business Pilot Training | CAE",
+      "source": "",
+      "analysis": {
+        "relevance_to_article": 8.9,
+        "visual_quality": 9.2,
+        "professional_appeal": 8.6,
+        "concept_clarity": 8.4,
+        "brand_appropriateness": 8.5,
+        "emotional_impact": 8.5,
+        "informational_value": 9.0,
+        "uniqueness": 8.5,
+        "scalability": 9.0,
+        "contextual_fit": 9.2,
+        "total_score": 87.79
+      }
+    }
+  ],
+  "timestamp": "2025-09-01T12:55:02.877467"
+}

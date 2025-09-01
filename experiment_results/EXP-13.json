@@ -1,0 +1,46 @@
+{
+  "experiment_id": "EXP-13",
+  "experiment_name": "Risk Assessment",
+  "search_query": "risk assessment matrix corporate risk management operational safety",
+  "images_found": 10,
+  "images_analyzed": 1,
+  "best_image": {
+    "url": "https://risktec.tuv.com/wp-content/uploads/2018/09/Figure-1-A-typical-Risk-Assessment-Matrix-1024x660.png",
+    "title": "The Matrix Reloaded - our guide to the risk assessment matrix | Risktec",
+    "source": "",
+    "analysis": {
+      "relevance_to_article": 8.2,
+      "visual_quality": 8.0,
+      "professional_appeal": 8.6,
+      "concept_clarity": 8.2,
+      "brand_appropriateness": 8.0,
+      "emotional_impact": 7.8,
+      "informational_value": 8.0,
+      "uniqueness": 7.9,
+      "scalability": 8.5,
+      "contextual_fit": 7.9,
+      "total_score": 81.22
+    }
+  },
+  "all_images": [
+    {
+      "url": "https://risktec.tuv.com/wp-content/uploads/2018/09/Figure-1-A-typical-Risk-Assessment-Matrix-1024x660.png",
+      "title": "The Matrix Reloaded - our guide to the risk assessment matrix | Risktec",
+      "source": "",
+      "analysis": {
+        "relevance_to_article": 8.2,
+        "visual_quality": 8.0,
+        "professional_appeal": 8.6,
+        "concept_clarity": 8.2,
+        "brand_appropriateness": 8.0,
+        "emotional_impact": 7.8,
+        "informational_value": 8.0,
+        "uniqueness": 7.9,
+        "scalability": 8.5,
+        "contextual_fit": 7.9,
+        "total_score": 81.22
+      }
+    }
+  ],
+  "timestamp": "2025-09-01T12:58:11.033119"
+}

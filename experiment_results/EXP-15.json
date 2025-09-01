@@ -1,0 +1,46 @@
+{
+  "experiment_id": "EXP-15",
+  "experiment_name": "Brand Management",
+  "search_query": "brand reputation management corporate image crisis protection",
+  "images_found": 10,
+  "images_analyzed": 1,
+  "best_image": {
+    "url": "https://determ.com/wp-content/uploads/2023/03/reputation-influences.jpg",
+    "title": "Reputation Management: 10 Best Practices - Determ",
+    "source": "",
+    "analysis": {
+      "relevance_to_article": 8.7,
+      "visual_quality": 9.1,
+      "professional_appeal": 9.0,
+      "concept_clarity": 8.9,
+      "brand_appropriateness": 8.6,
+      "emotional_impact": 8.6,
+      "informational_value": 8.8,
+      "uniqueness": 8.6,
+      "scalability": 8.9,
+      "contextual_fit": 8.5,
+      "total_score": 87.75
+    }
+  },
+  "all_images": [
+    {
+      "url": "https://determ.com/wp-content/uploads/2023/03/reputation-influences.jpg",
+      "title": "Reputation Management: 10 Best Practices - Determ",
+      "source": "",
+      "analysis": {
+        "relevance_to_article": 8.7,
+        "visual_quality": 9.1,
+        "professional_appeal": 9.0,
+        "concept_clarity": 8.9,
+        "brand_appropriateness": 8.6,
+        "emotional_impact": 8.6,
+        "informational_value": 8.8,
+        "uniqueness": 8.6,
+        "scalability": 8.9,
+        "contextual_fit": 8.5,
+        "total_score": 87.75
+      }
+    }
+  ],
+  "timestamp": "2025-09-01T12:58:47.543985"
+}

@@ -1,0 +1,64 @@
+{
+  "experiment_id": "EXP-09",
+  "experiment_name": "Crisis Management",
+  "search_query": "crisis management emergency response incident handling business continuity",
+  "images_found": 10,
+  "images_analyzed": 2,
+  "best_image": {
+    "url": "https://www.researchgate.net/publication/362077581/figure/fig1/AS:11431281176776111@1690262362816/The-crisis-and-incident-response-lifecycle-Source-Control-Risks.png",
+    "title": "The crisis and incident response lifecycle (Source: Control Risks) |  Download Scientific Diagram",
+    "source": "",
+    "analysis": {
+      "relevance_to_article": 9.0,
+      "visual_quality": 9.0,
+      "professional_appeal": 8.2,
+      "concept_clarity": 8.9,
+      "brand_appropriateness": 8.2,
+      "emotional_impact": 8.2,
+      "informational_value": 8.9,
+      "uniqueness": 8.5,
+      "scalability": 9.0,
+      "contextual_fit": 9.0,
+      "total_score": 87.06
+    }
+  },
+  "all_images": [
+    {
+      "url": "https://www.researchgate.net/publication/362077581/figure/fig1/AS:11431281176776111@1690262362816/The-crisis-and-incident-response-lifecycle-Source-Control-Risks.png",
+      "title": "The crisis and incident response lifecycle (Source: Control Risks) |  Download Scientific Diagram",
+      "source": "",
+      "analysis": {
+        "relevance_to_article": 9.0,
+        "visual_quality": 9.0,
+        "professional_appeal": 8.2,
+        "concept_clarity": 8.9,
+        "brand_appropriateness": 8.2,
+        "emotional_impact": 8.2,
+        "informational_value": 8.9,
+        "uniqueness": 8.5,
+        "scalability": 9.0,
+        "contextual_fit": 9.0,
+        "total_score": 87.06
+      }
+    },
+    {
+      "url": "https://arksolvers.com/wp-content/uploads/2024/12/Effective-Business-Continuity-Strategy.png",
+      "title": "Effective Business Continuity Strategy: Expert Guide - Ark Solvers",
+      "source": "",
+      "analysis": {
+        "relevance_to_article": 9.0,
+        "visual_quality": 9.0,
+        "professional_appeal": 8.2,
+        "concept_clarity": 8.9,
+        "brand_appropriateness": 8.2,
+        "emotional_impact": 8.2,
+        "informational_value": 8.9,
+        "uniqueness": 8.5,
+        "scalability": 9.0,
+        "contextual_fit": 9.0,
+        "total_score": 87.06
+      }
+    }
+  ],
+  "timestamp": "2025-09-01T13:00:06.547567"
+}
