@@ -79,3 +79,6 @@ dmypy.json
 # Local development
 local_test_*
 scratch*
+
+# Experiments folder
+experiments/
