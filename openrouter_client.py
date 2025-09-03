@@ -482,11 +482,21 @@ Format your response as JSON with these fields:
             # Parse JSON response
             analysis_data = json.loads(content)
             
-            # Calculate cost estimate
+            # Calculate cost estimate with proper input/output pricing
             usage = response_data.get('usage', {})
+            prompt_tokens = usage.get('prompt_tokens', 0)
+            completion_tokens = usage.get('completion_tokens', 0)
             total_tokens = usage.get('total_tokens', 0)
             model_info = self.MODEL_REGISTRY.get(model)
-            cost_estimate = total_tokens * model_info.cost_per_token if model_info else 0.0
+            
+            if model_info and hasattr(model_info, 'input_cost_per_million') and hasattr(model_info, 'output_cost_per_million'):
+                input_cost = (prompt_tokens / 1_000_000) * model_info.input_cost_per_million
+                output_cost = (completion_tokens / 1_000_000) * model_info.output_cost_per_million
+                cost_estimate = input_cost + output_cost
+            elif model_info:
+                cost_estimate = total_tokens * model_info.cost_per_token
+            else:
+                cost_estimate = 0.0
             
             # Create structured result
             result = AnalysisResult(
@@ -526,12 +536,27 @@ Format your response as JSON with these fields:
             )
     
     def _track_usage(self, response_data: Dict, model: str):
-        """Track API usage statistics."""
+        """Track API usage statistics with proper input/output token pricing."""
         usage = response_data.get('usage', {})
+        prompt_tokens = usage.get('prompt_tokens', 0)
+        completion_tokens = usage.get('completion_tokens', 0)
         total_tokens = usage.get('total_tokens', 0)
         
         model_info = self.MODEL_REGISTRY.get(model)
-        cost = total_tokens * model_info.cost_per_token if model_info else 0.0
+        
+        # Calculate cost using separate input/output pricing
+        if model_info and hasattr(model_info, 'input_cost_per_million') and hasattr(model_info, 'output_cost_per_million'):
+            input_cost = (prompt_tokens / 1_000_000) * model_info.input_cost_per_million
+            output_cost = (completion_tokens / 1_000_000) * model_info.output_cost_per_million
+            cost = input_cost + output_cost
+            logger.debug(f"Cost calculation for {model}: {prompt_tokens} input @ ${model_info.input_cost_per_million}/M = ${input_cost:.6f}, {completion_tokens} output @ ${model_info.output_cost_per_million}/M = ${output_cost:.6f}, total = ${cost:.6f}")
+        elif model_info:
+            # Fallback to average cost per token
+            cost = total_tokens * model_info.cost_per_token
+            logger.debug(f"Cost calculation for {model} (fallback): {total_tokens} tokens @ ${model_info.cost_per_token:.8f}/token = ${cost:.6f}")
+        else:
+            cost = 0.0
+            logger.warning(f"No pricing info for model {model}")
         
         self.usage_stats['total_requests'] += 1
         self.usage_stats['total_tokens'] += total_tokens
