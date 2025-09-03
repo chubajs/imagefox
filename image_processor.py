@@ -4,6 +4,7 @@ Image Processor module for ImageFox.
 
 This module handles downloading, validation, optimization, and processing
 of images with concurrent operations and comprehensive metadata extraction.
+Now includes DataImpulse proxy support for reliable downloads.
 """
 
 import os
@@ -25,6 +26,15 @@ try:
     from PIL.ExifTags import TAGS
 except ImportError:
     raise ImportError("PIL (Pillow) is required for image processing. Install with: pip install Pillow")
+
+# Try to import proxy support
+try:
+    from proxy_config import DataImpulseConfig
+    from proxy_image_processor import ProxyImageProcessor
+    PROXY_AVAILABLE = True
+except ImportError:
+    PROXY_AVAILABLE = False
+    logger.warning("Proxy support not available. Install proxy_config and proxy_image_processor for proxy support.")
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +82,14 @@ class ImageProcessor:
     # Supported formats
     SUPPORTED_FORMATS = {'JPEG', 'JPG', 'PNG', 'WebP', 'GIF', 'BMP', 'TIFF'}
     
-    def __init__(self, temp_dir: Optional[str] = None, concurrent_downloads: int = 5):
+    def __init__(self, temp_dir: Optional[str] = None, concurrent_downloads: int = 5, use_proxy: bool = False):
         """
         Initialize Image Processor.
         
         Args:
             temp_dir: Directory for temporary files (uses system temp if None)
             concurrent_downloads: Maximum concurrent downloads
+            use_proxy: Whether to use DataImpulse proxy for downloads
         """
         self.temp_dir = Path(temp_dir) if temp_dir else Path(tempfile.gettempdir()) / "imagefox"
         self.temp_dir.mkdir(exist_ok=True)
@@ -86,6 +97,17 @@ class ImageProcessor:
         self.concurrent_downloads = concurrent_downloads
         self.session = None
         self.temp_files = []
+        self.use_proxy = use_proxy and PROXY_AVAILABLE
+        
+        # Initialize proxy processor if enabled
+        self.proxy_processor = None
+        if self.use_proxy:
+            logger.info("Initializing proxy image processor with DataImpulse")
+            self.proxy_processor = ProxyImageProcessor(
+                temp_dir=str(self.temp_dir),
+                concurrent_downloads=concurrent_downloads,
+                use_proxy=True
+            )
         
         # Processing statistics
         self.stats = {
@@ -115,9 +137,43 @@ class ImageProcessor:
             await self.session.close()
         self.cleanup_temp()
     
+    async def download_image_with_proxy(self, url: str) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Download image using DataImpulse proxy.
+        
+        Args:
+            url: Image URL to download
+        
+        Returns:
+            Tuple of (success, file_path, error_message)
+        """
+        if not self.proxy_processor:
+            return False, None, "Proxy processor not initialized"
+        
+        try:
+            async with self.proxy_processor:
+                results = await self.proxy_processor.download_images([url])
+                
+                if results and results[0].success:
+                    result = results[0]
+                    self.stats['downloads_successful'] += 1
+                    self.stats['bytes_downloaded'] += result.file_size or 0
+                    self.stats['total_download_time'] += result.download_time or 0
+                    self.temp_files.append(result.file_path)
+                    return True, result.file_path, None
+                else:
+                    error = results[0].error if results else "Unknown error"
+                    self.stats['downloads_failed'] += 1
+                    return False, None, error
+                    
+        except Exception as e:
+            logger.error(f"Proxy download failed: {e}")
+            capture_exception(e)
+            return False, None, str(e)
+    
     async def download_image(self, url: str, max_size_mb: Optional[int] = None) -> Tuple[bool, Optional[str], Optional[str]]:
         """
-        Download image from URL.
+        Download image from URL (with optional proxy support).
         
         Args:
             url: Image URL to download
@@ -126,6 +182,10 @@ class ImageProcessor:
         Returns:
             Tuple of (success, file_path, error_message)
         """
+        # Use proxy if enabled
+        if self.use_proxy:
+            logger.debug(f"Downloading with proxy: {url}")
+            return await self.download_image_with_proxy(url)
         start_time = datetime.now()
         self.stats['downloads_attempted'] += 1
         
