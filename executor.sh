@@ -28,7 +28,9 @@ run_imagefox_agent() {
         echo "$(date): ImageFox Agent is already running" >> "$log_file"
     else
         echo "$(date): Starting ImageFox Agent" >> "$log_file"
-        python3 "$agent_script" >> "$log_file" 2>&1
+        # Activate virtual environment and run the agent
+        source venv/bin/activate
+        python "$agent_script" >> "$log_file" 2>&1
         exit_code=$?
         echo "$(date): ImageFox Agent finished with exit code $exit_code" >> "$log_file"
     fi

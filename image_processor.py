@@ -27,6 +27,8 @@ try:
 except ImportError:
     raise ImportError("PIL (Pillow) is required for image processing. Install with: pip install Pillow")
 
+logger = logging.getLogger(__name__)
+
 # Try to import proxy support
 try:
     from proxy_config import DataImpulseConfig
@@ -35,8 +37,6 @@ try:
 except ImportError:
     PROXY_AVAILABLE = False
     logger.warning("Proxy support not available. Install proxy_config and proxy_image_processor for proxy support.")
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
