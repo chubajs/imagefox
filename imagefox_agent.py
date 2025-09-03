@@ -541,80 +541,76 @@ async def main():
         if not check_agent_status():
             return 0
         
-        # Initialize ImageFox
+        # Initialize ImageFox using async context manager
         logger.info("Initializing ImageFox...")
-        imagefox = ImageFox()
-        
-        # Validate ImageFox configuration (skip airtable since we don't use the Images table)
-        validation_results = imagefox.validate_configuration()
-        failed_components = [comp for comp, status in validation_results.items() if not status and comp != 'airtable']
-        
-        if failed_components:
-            logger.error(f"ImageFox validation failed for components: {failed_components}")
-            return 1
-        
-        logger.info("ImageFox validation successful (airtable Images table skipped)")
-        
-        # Get projects with imagefox field
-        try:
-            projects = projects_table.all(formula="AND({imagefox}, {turnedOn})")
-            logger.info(f"Found {len(projects)} projects with imagefox configuration")
-        except Exception as e:
-            logger.error(f"Failed to fetch projects: {e}")
-            capture_exception(e)
-            return 1
-        
-        if not projects:
-            logger.info("No projects with imagefox configuration found")
-            return 0
-        
-        # Process each project
-        total_stats = {
-            'projects_processed': 0,
-            'total_records_processed': 0,
-            'total_images_added': 0,
-            'total_cost': 0.0,
-            'total_errors': 0
-        }
-        
-        for project in projects:
+        async with ImageFox() as imagefox:
+            # Validate ImageFox configuration (skip airtable since we don't use the Images table)
+            validation_results = imagefox.validate_configuration()
+            failed_components = [comp for comp, status in validation_results.items() if not status and comp != 'airtable']
+            
+            if failed_components:
+                logger.error(f"ImageFox validation failed for components: {failed_components}")
+                return 1
+            
+            logger.info("ImageFox validation successful (airtable Images table skipped)")
+            
+            # Get projects with imagefox field
             try:
-                project_stats = await process_project(project, imagefox)
-                
-                total_stats['projects_processed'] += 1
-                total_stats['total_records_processed'] += project_stats['records_processed']
-                total_stats['total_images_added'] += project_stats['images_added']
-                total_stats['total_cost'] += project_stats['total_cost']
-                total_stats['total_errors'] += project_stats['errors']
-                
-                # Add delay between projects
-                await asyncio.sleep(1)
-                
+                projects = projects_table.all(formula="AND({imagefox}, {turnedOn})")
+                logger.info(f"Found {len(projects)} projects with imagefox configuration")
             except Exception as e:
-                logger.error(f"Error processing project {project.get('fields', {}).get('project', 'unknown')}: {e}")
+                logger.error(f"Failed to fetch projects: {e}")
                 capture_exception(e)
-                total_stats['total_errors'] += 1
-                continue
-        
-        # Log final statistics with cost breakdown
-        logger.info("="*50)
-        logger.info("ImageFox Agent execution completed")
-        logger.info(f"Final Statistics: {total_stats}")
-        logger.info("="*50)
-        logger.info("COST_TRACKING: FINAL SUMMARY")
-        logger.info(f"COST_TRACKING: Total cost: ${total_stats['total_cost']:.6f}")
-        logger.info(f"COST_TRACKING: Total images: {total_stats['total_images_added']}")
-        logger.info(f"COST_TRACKING: Total records: {total_stats['total_records_processed']}")
-        if total_stats['total_images_added'] > 0:
-            avg_per_image = total_stats['total_cost'] / total_stats['total_images_added']
-            logger.info(f"COST_TRACKING: Average cost per image: ${avg_per_image:.6f}")
-        if total_stats['total_records_processed'] > 0:
-            avg_per_record = total_stats['total_cost'] / total_stats['total_records_processed']
-            logger.info(f"COST_TRACKING: Average cost per record: ${avg_per_record:.6f}")
-        logger.info("="*50)
-        
-        # Cleanup
-        await imagefox.cleanup()
+                return 1
+            
+            if not projects:
+                logger.info("No projects with imagefox configuration found")
+                return 0
+            
+            # Process each project
+            total_stats = {
+                'projects_processed': 0,
+                'total_records_processed': 0,
+                'total_images_added': 0,
+                'total_cost': 0.0,
+                'total_errors': 0
+            }
+            
+            for project in projects:
+                try:
+                    project_stats = await process_project(project, imagefox)
+                    
+                    total_stats['projects_processed'] += 1
+                    total_stats['total_records_processed'] += project_stats['records_processed']
+                    total_stats['total_images_added'] += project_stats['images_added']
+                    total_stats['total_cost'] += project_stats['total_cost']
+                    total_stats['total_errors'] += project_stats['errors']
+                    
+                    # Add delay between projects
+                    await asyncio.sleep(1)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing project {project.get('fields', {}).get('project', 'unknown')}: {e}")
+                    capture_exception(e)
+                    total_stats['total_errors'] += 1
+                    continue
+            
+            # Log final statistics with cost breakdown
+            logger.info("="*50)
+            logger.info("ImageFox Agent execution completed")
+            logger.info(f"Final Statistics: {total_stats}")
+            logger.info("="*50)
+            logger.info("COST_TRACKING: FINAL SUMMARY")
+            logger.info(f"COST_TRACKING: Total cost: ${total_stats['total_cost']:.6f}")
+            logger.info(f"COST_TRACKING: Total images: {total_stats['total_images_added']}")
+            logger.info(f"COST_TRACKING: Total records: {total_stats['total_records_processed']}")
+            if total_stats['total_images_added'] > 0:
+                avg_per_image = total_stats['total_cost'] / total_stats['total_images_added']
+                logger.info(f"COST_TRACKING: Average cost per image: ${avg_per_image:.6f}")
+            if total_stats['total_records_processed'] > 0:
+                avg_per_record = total_stats['total_cost'] / total_stats['total_records_processed']
+                logger.info(f"COST_TRACKING: Average cost per record: ${avg_per_record:.6f}")
+            logger.info("="*50)
         
         return 0
         
