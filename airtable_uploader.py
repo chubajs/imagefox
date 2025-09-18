@@ -34,7 +34,7 @@ except ImportError:
 
 @dataclass
 class ImageRecord:
-    """Structured representation of an Images table record."""
+    """Structured representation of an Airtable image record."""
     search_query: str
     source_url: str
     image_url: str
@@ -91,11 +91,11 @@ class ImageRecord:
 
 
 class AirtableUploader:
-    """Client for Airtable API to manage Images table."""
+    """Client for Airtable API to manage image records in project tables."""
     
     API_BASE_URL = "https://api.airtable.com/v0"
     
-    # Standard Images table schema
+    # Standard image fields schema
     TABLE_SCHEMA = {
         'Search Query': {'type': 'singleLineText', 'required': True},
         'Source URL': {'type': 'url', 'required': True},
@@ -135,7 +135,7 @@ class AirtableUploader:
         """
         self.api_key = api_key or os.getenv('AIRTABLE_API_KEY')
         self.base_id = base_id or os.getenv('AIRTABLE_BASE_ID')
-        self.table_name = table_name or os.getenv('AIRTABLE_TABLE_NAME', 'Images')
+        self.table_name = table_name or os.getenv('AIRTABLE_TABLE_NAME')
         
         if not self.api_key:
             raise ValueError("AIRTABLE_API_KEY not provided or found in environment")
@@ -268,7 +268,7 @@ class AirtableUploader:
     
     def create_record(self, record: Union[ImageRecord, Dict]) -> Dict:
         """
-        Create a single record in the Images table.
+        Create a single record in the Airtable table.
         
         Args:
             record: ImageRecord instance or dictionary with field data
@@ -645,23 +645,6 @@ class AirtableUploader:
         
         return stats
     
-    def validate_connection(self) -> bool:
-        """
-        Test connection to Airtable base and table.
-        
-        Returns:
-            True if connection successful, False otherwise
-        """
-        try:
-            # Try to get base information or a limited query
-            records = self.query_records(max_records=1)
-            logger.info("Airtable connection validated successfully")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Airtable connection validation failed: {e}")
-            capture_exception(e)
-            return False
 
 
 def main():
@@ -676,10 +659,7 @@ def main():
         # Initialize uploader
         uploader = AirtableUploader()
         
-        # Test connection
-        if not uploader.validate_connection():
-            print("Connection validation failed")
-            return 1
+        # Skip connection validation - using project-specific tables
         
         # Create a test record
         test_record = ImageRecord(

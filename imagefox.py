@@ -25,7 +25,7 @@ from apify_client import ApifyClient
 from openrouter_client import OpenRouterClient
 from vision_analyzer import VisionAnalyzer, ImageMetadata
 from image_selector import ImageSelector, ImageCandidate
-from image_processor import ImageProcessor
+from proxy_image_processor import ProxyImageProcessor
 from airtable_uploader import AirtableUploader
 from imagebb_uploader import ImageBBUploader
 
@@ -122,6 +122,21 @@ class ImageFox:
         
         logger.info("ImageFox orchestrator initialized")
     
+    async def __aenter__(self):
+        """Enter async context manager."""
+        # Initialize aiohttp session for image processor
+        if hasattr(self.image_processor, '__aenter__'):
+            await self.image_processor.__aenter__()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Exit async context manager."""
+        # Clean up aiohttp session
+        if hasattr(self.image_processor, '__aexit__'):
+            await self.image_processor.__aexit__(exc_type, exc_val, exc_tb)
+        # Perform cleanup
+        await self.cleanup()
+    
     def _initialize_components(self):
         """Initialize all ImageFox components."""
         try:
@@ -133,8 +148,8 @@ class ImageFox:
             self.vision_analyzer = VisionAnalyzer(self.openrouter_client)
             self.image_selector = ImageSelector()
             
-            # Processing and storage
-            self.image_processor = ImageProcessor()
+            # Processing and storage (using proxy for all downloads)
+            self.image_processor = ProxyImageProcessor(use_proxy=True)
             self.airtable_uploader = AirtableUploader()
             self.imagebb_uploader = ImageBBUploader()
             
@@ -168,12 +183,8 @@ class ImageFox:
             logger.error(f"OpenRouter validation failed: {e}")
             results['openrouter'] = False
         
-        try:
-            # Test Airtable connection
-            results['airtable'] = self.airtable_uploader.validate_connection()
-        except Exception as e:
-            logger.error(f"Airtable validation failed: {e}")
-            results['airtable'] = False
+        # Skip Airtable validation - not using centralized Images table
+        results['airtable'] = True  # Always pass since we use project-specific tables
         
         try:
             # Test ImageBB connection (create simple validation)
@@ -269,17 +280,19 @@ class ImageFox:
     async def _search_images(self, request: SearchRequest, errors: List[str]) -> List[Dict[str, Any]]:
         """Search for images using Apify."""
         try:
-            logger.info(f"Searching for images: '{request.query}' (limit: {request.limit})")
+            # Fetch 3x more images than requested to have fallbacks for download failures
+            actual_limit = (request.limit or 6) * 3
+            logger.info(f"Searching for images: '{request.query}' (limit: {actual_limit}, requested: {request.limit})")
             
             results = self.apify_client.search_images(
                 query=request.query,
-                limit=request.limit,
+                limit=actual_limit,  # Get more images for fallback
                 safe_search=request.safe_search,
                 min_width=request.min_width,
                 min_height=request.min_height
             )
             
-            logger.info(f"Found {len(results)} images")
+            logger.info(f"Found {len(results)} images (extra for fallback on download failures)")
             return results
             
         except Exception as e:
@@ -358,7 +371,15 @@ class ImageFox:
             # Filter successful results (exclude None and exceptions)
             candidates = [r for r in results if r is not None and isinstance(r, ImageCandidate)]
             
-            logger.info(f"Successfully analyzed {len(candidates)}/{len(search_results)} images")
+            # Log download success rate
+            success_rate = (len(candidates) / len(search_results) * 100) if search_results else 0
+            logger.info(f"Successfully analyzed {len(candidates)}/{len(search_results)} images ({success_rate:.1f}% success rate)")
+            
+            # Ensure we have at least the minimum required images
+            min_required = request.limit or 2
+            if len(candidates) < min_required:
+                logger.warning(f"Only {len(candidates)} images analyzed successfully, needed {min_required}")
+            
             return candidates
             
         except Exception as e:

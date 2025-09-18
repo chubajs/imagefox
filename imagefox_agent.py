@@ -38,6 +38,9 @@ DEFAULT_IMAGE_COUNT = 2
 TEST_MODE = os.getenv('IMAGEFOX_TEST_MODE', 'false').lower() == 'true'
 TEST_RECORD_LIMIT = int(os.getenv('IMAGEFOX_TEST_RECORD_LIMIT', '2'))
 
+# Processing limit - same for all projects
+MAX_RECORDS_PER_PROJECT = int(os.getenv('IMAGEFOX_RECORDS_PER_PROJECT', '2'))
+
 # Airtable configuration
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 PROJECTS_BASE = "appAC30YhZkEbjjWK"
@@ -407,7 +410,12 @@ async def process_configuration(project: Dict[str, Any], imagefox_config: Dict[s
             records = target_table.all(formula=formula)
             logger.info(f"Found {len(records)} unpublished records needing images in {project_name} (excluding published posts)")
             
-            # Limit records in test mode
+            # Apply record limit (same for all projects)
+            if len(records) > MAX_RECORDS_PER_PROJECT:
+                records = records[:MAX_RECORDS_PER_PROJECT]
+                logger.info(f"Limited to {MAX_RECORDS_PER_PROJECT} records per project per run")
+            
+            # Further limit in test mode
             if TEST_MODE and len(records) > TEST_RECORD_LIMIT:
                 records = records[:TEST_RECORD_LIMIT]
                 logger.info(f"TEST MODE: Limited to {TEST_RECORD_LIMIT} records")
@@ -544,15 +552,15 @@ async def main():
         # Initialize ImageFox using async context manager
         logger.info("Initializing ImageFox...")
         async with ImageFox() as imagefox:
-            # Validate ImageFox configuration (skip airtable since we don't use the Images table)
+            # Validate ImageFox configuration
             validation_results = imagefox.validate_configuration()
-            failed_components = [comp for comp, status in validation_results.items() if not status and comp != 'airtable']
+            failed_components = [comp for comp, status in validation_results.items() if not status]
             
             if failed_components:
                 logger.error(f"ImageFox validation failed for components: {failed_components}")
                 return 1
             
-            logger.info("ImageFox validation successful (airtable Images table skipped)")
+            logger.info("ImageFox validation successful")
             
             # Get projects with imagefox field
             try:

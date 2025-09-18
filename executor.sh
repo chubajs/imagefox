@@ -21,18 +21,48 @@ mkdir -p logs
 run_imagefox_agent() {
     local log_file="logs/cron_imagefox_agent.log"
     local agent_script="imagefox_agent.py"
+    local pid_file="logs/imagefox_agent.pid"
+    
+    echo "$(date): Checking ImageFox Agent status" >> "$log_file"
+    
+    # Check if PID file exists and if process is still running
+    if [ -f "$pid_file" ]; then
+        local existing_pid=$(cat "$pid_file")
+        if ps -p "$existing_pid" > /dev/null 2>&1; then
+            # Check if it's actually our python process
+            if ps -p "$existing_pid" -o comm= | grep -q "python"; then
+                echo "$(date): ImageFox Agent is already running (PID: $existing_pid)" >> "$log_file"
+                return 0
+            fi
+        fi
+        # PID file exists but process is not running, remove stale PID file
+        echo "$(date): Removing stale PID file" >> "$log_file"
+        rm -f "$pid_file"
+    fi
+    
+    # Double check with process grep as fallback
+    if pgrep -f "$agent_script" > /dev/null 2>&1; then
+        echo "$(date): ImageFox Agent process found running, updating PID file" >> "$log_file"
+        pgrep -f "$agent_script" | head -1 > "$pid_file"
+        return 0
+    fi
     
     echo "$(date): Starting ImageFox Agent" >> "$log_file"
+    # Activate virtual environment and run the agent in background
+    source venv/bin/activate
+    python "$agent_script" >> "$log_file" 2>&1 &
+    local new_pid=$!
+    echo "$new_pid" > "$pid_file"
+    echo "$(date): ImageFox Agent started with PID $new_pid" >> "$log_file"
     
-    if ps aux | grep -v grep | grep "$agent_script" >/dev/null 2>&1; then
-        echo "$(date): ImageFox Agent is already running" >> "$log_file"
+    # Wait a moment and verify it's still running
+    sleep 2
+    if ps -p "$new_pid" > /dev/null 2>&1; then
+        echo "$(date): ImageFox Agent confirmed running" >> "$log_file"
     else
-        echo "$(date): Starting ImageFox Agent" >> "$log_file"
-        # Activate virtual environment and run the agent
-        source venv/bin/activate
-        python "$agent_script" >> "$log_file" 2>&1
-        exit_code=$?
-        echo "$(date): ImageFox Agent finished with exit code $exit_code" >> "$log_file"
+        echo "$(date): ImageFox Agent failed to start properly" >> "$log_file"
+        rm -f "$pid_file"
+        exit 1
     fi
 }
 
